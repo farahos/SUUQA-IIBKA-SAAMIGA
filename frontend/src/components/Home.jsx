@@ -1,408 +1,491 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, use } from "react";
 import axios from "axios";
-import Slider from "react-slick";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { FaWhatsapp } from "react-icons/fa";
+import { useUser } from '../hooks/useUser'; // Adjust path as needed
 
-const Home = () => {
-  const [posts, setPosts] = useState([]);
+const BuyerManagement = ({phoneNumber, message}) => {
+  phoneNumber = "252617730000";
+  message = "Asc, waxaan jeclaan lahaa inaan wax ka ogaado saamiga iibka ah ee diyaarka ah!";
+const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+  const [sellers, setSellers] = useState([]);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [filteredSellers, setFilteredSellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredPosts, setFilteredPosts] = useState([]);
-  const [activeCategory, setActiveCategory] = useState("all");
-
-  // Fetch all posts
-  const fetchPosts = async () => {
+  const navigate = useNavigate();
+    const { user } = useUser(); // Get current user from context
+  
+  const [statusFilter, setStatusFilter] = useState("available"); // Default waa "all" laakiin sorted
+   const buttonStyle = {
+    position: "fixed",
+    width: "60px",
+    height: "60px",
+    bottom: "20px",
+    right: "20px",
+    backgroundColor: "#25D366", // WhatsApp green
+    color: "white",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "28px",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.2)",
+    cursor: "pointer",
+    zIndex: 1000,
+    transition: "transform 0.2s",
+  };
+  const hoverStyle = {
+    transform: "scale(1.1)",
+  };
+  // Fetch all sellers
+  const fetchSellers = async () => {
     try {
-      const { data } = await axios.get("/api/post/getPosts");
-      setPosts(data);
-      setFilteredPosts(data);
-    } catch (err) {
-      console.error(err.response?.data || err);
-      alert("Failed to fetch posts");
+      const response = await axios.get("/api/sellers");
+      const sortedSellers = sortSellersByPriority(response.data.data);
+      setSellers(sortedSellers);
+      setFilteredSellers(sortedSellers);
+    } catch (error) {
+      console.error("Error fetching sellers:", error.message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPosts();
+    fetchSellers();
   }, []);
 
-  // Filter posts based on search and category
-  useEffect(() => {
-    let results = posts;
+ 
 
-    // Search filter
-    if (searchTerm) {
-      results = results.filter(post =>
-        post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.uploadedBy?.username?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Sort function for priority order: Available -> Pending -> Sold
+  const sortSellersByPriority = (sellersList) => {
+    const statusPriority = {
+      'Available': 1,
+      'Pending': 2,
+      'Sold': 3
+    };
+
+    return sellersList.sort((a, b) => {
+      const priorityA = statusPriority[a.status] || 4;
+      const priorityB = statusPriority[b.status] || 4;
+      return priorityA - priorityB;
+    });
+  };
+
+  // Filter sellers based on search term and status
+  useEffect(() => {
+    let results = sellers;
+
+    // Filter by status
+    if (statusFilter !== "all") {
+      results = results.filter(seller => 
+        seller.status?.toLowerCase() === statusFilter.toLowerCase()
       );
     }
 
-    // Category filter
-    if (activeCategory !== "all") {
-      results = results.filter(post => {
-        switch (activeCategory) {
-          case "with-pdf":
-            return post.pdf;
-          case "with-audio":
-            return post.audio;
-          case "with-images":
-            return post.image;
-          default:
-            return true;
-        }
-      });
+    // Filter by search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      results = results.filter(seller =>
+        seller.fullname?.toLowerCase().includes(term) ||
+        seller.name?.toLowerCase().includes(term) ||
+        seller.samiga?.toLowerCase().includes(term) ||
+        seller.rate?.toString().includes(term) ||
+        seller.value?.toString().includes(term)
+      );
     }
 
-    setFilteredPosts(results);
-  }, [searchTerm, activeCategory, posts]);
+    // Apply sorting always - mar walba Available -> Pending -> Sold
+    results = sortSellersByPriority(results);
 
-  // Slider settings for desktop
-  const desktopSettings = {
-    dots: true,
-    infinite: true,
-    autoplay: true,
-    autoplaySpeed: 4000,
-    speed: 600,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: true,
-    pauseOnHover: true,
-    adaptiveHeight: true,
+    setFilteredSellers(results);
+  }, [searchTerm, statusFilter, sellers]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
   };
 
-  // Slider settings for mobile
-  const mobileSettings = {
-    dots: true,
-    infinite: true,
-    autoplay: true,
-    autoplaySpeed: 4000,
-    speed: 600,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: false,
-    pauseOnHover: false,
-    adaptiveHeight: true,
-  };
-
-  // Categories for filtering
-  const categories = [
-    { id: "all", label: "All Posts", count: posts.length },
-  
-    { id: "with-pdf", label: "With PDF", count: posts.filter(p => p.pdf).length },
-    { id: "with-audio", label: "With Audio", count: posts.filter(p => p.audio).length },
-  ];
-
-  // Only posts with an image for banner
-  const imagePosts = posts.filter((p) => p.image);
-
-  // Loading skeleton
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Skeleton Banner */}
-          <div className="mb-12">
-            <div className="h-80 sm:h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
-          </div>
-          
-          {/* Skeleton Search and Filters */}
-          <div className="mb-8 space-y-4">
-            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse max-w-md"></div>
-            <div className="flex space-x-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse w-24"></div>
-              ))}
-            </div>
-          </div>
-
-          {/* Skeleton Posts */}
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">
-            All Posts
-          </h1>
-          <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden animate-pulse">
-                <div className="h-48 bg-gray-300 dark:bg-gray-600"></div>
-                <div className="p-4 space-y-3">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex justify-center items-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Waxyar Sug...</p>
         </div>
       </div>
     );
   }
-
+const handleClick = (sellerId) => {
+    if (!user) {
+      setShowConfirm(true);
+    } else {
+      navigate(`/seller/${sellerId}`);
+    }
+  };
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* ✅ Banner/Slider */}
-        {imagePosts.length > 0 && (
-          <div className="mb-8 sm:mb-12">
-            {/* Desktop Slider */}
-            <div className="hidden sm:block">
-              <Slider {...desktopSettings}>
-                {imagePosts.map((p) => (
-                  <div key={p._id}>
-                    <Link to={`/post/${p._id}`} className="block">
-                      <div className="relative h-80 sm:h-96 rounded-2xl overflow-hidden shadow-lg group cursor-pointer">
-                        <img
-                          src={p.image}
-                          alt={p.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6 sm:p-8">
-                          <h2 className="text-xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-3 line-clamp-2">
-                            {p.title}
-                          </h2>
-                          <p className="text-white/80 text-sm sm:text-base max-w-2xl line-clamp-2 sm:line-clamp-3">
-                            {p.content}
-                          </p>
-                          <div className="flex items-center mt-3 text-white/60 text-sm">
-                            <span>By {p.uploadedBy?.username || "Unknown"}</span>
-                            <span className="mx-2">•</span>
-                            <span>{new Date(p.createdAt).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                ))}
-              </Slider>
-            </div>
-            
-            {/* Mobile Slider */}
-            <div className="sm:hidden">
-              <Slider {...mobileSettings}>
-                {imagePosts.slice(0, 3).map((p) => (
-                  <div key={p._id}>
-                    <Link to={`/post/${p._id}`} className="block">
-                      <div className="relative h-64 rounded-2xl overflow-hidden shadow-lg">
-                        <img
-                          src={p.image}
-                          alt={p.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4">
-                          <h2 className="text-lg font-bold text-white mb-1 line-clamp-2">
-                            {p.title}
-                          </h2>
-                          <div className="flex items-center text-white/60 text-xs">
-                            <span>By {p.uploadedBy?.username || "Unknown"}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                ))}
-              </Slider>
-            </div>
-          </div>
-        )}
+    
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            Saamiga iibka diyaarka ah
+          </h1>
+        </div>
 
-        {/* ✅ Search and Filter Section */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            {/* Search Bar */}
-            <div className="relative flex-1 max-w-md">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+        {/* Search and Filter Section */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200">
+          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+            {/* Search Input */}
+            {/* <div className="flex-1 w-full lg:max-w-md">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by name, samiga, rate, or value..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
-              <input
-                type="text"
-                placeholder="Search posts, authors..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-              />
-              {searchTerm && (
+            </div> */}
+
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap gap-2 justify-center ">
+              <button
+                onClick={() => setStatusFilter("all")}
+                className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 ${
+                  statusFilter === "all" 
+                    ? "bg-blue-600 text-white shadow-lg" 
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                All ({sellers.length})
+              </button>
+              <button
+                onClick={() => setStatusFilter("available")}
+                className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 ${
+                  statusFilter === "available" 
+                    ? "bg-green-500 text-white shadow-lg" 
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                Available ({sellers.filter(s => s.status === 'Available').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter("pending")}
+                className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 ${
+                  statusFilter === "pending" 
+                    ? "bg-yellow-500 text-white shadow-lg" 
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                Pending ({sellers.filter(s => s.status === 'Pending').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter("sold")}
+                className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 ${
+                  statusFilter === "sold" 
+                    ? "bg-red-500 text-white shadow-lg" 
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                Sold ({sellers.filter(s => s.status === 'Sold').length})
+              </button>
+              
+              {/* Clear Filters Button */}
+              {/* {(searchTerm || statusFilter !== "all") && (
                 <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={clearFilters}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-all duration-200 flex items-center gap-2"
                 >
-                  <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
+                  Clear
                 </button>
-              )}
-            </div>
-
-            {/* Category Filters */}
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    activeCategory === category.id
-                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
-                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  {category.label}
-                  <span className="ml-1 text-xs opacity-75">({category.count})</span>
-                </button>
-              ))}
+              )} */}
             </div>
           </div>
+
+         
+
+          {/* Sorting Info - Always Visible */}
+          {/* <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+            </svg>
+            <span>Always sorted by: <strong className="text-green-600">Available</strong> → <strong className="text-yellow-600">Pending</strong> → <strong className="text-red-600">Sold</strong></span>
+          </div> */}
         </div>
 
-        {/* ✅ All Posts Section */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                {searchTerm || activeCategory !== "all" ? "Search Results" : "All Posts"}
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                {searchTerm || activeCategory !== "all" 
-                  ? `Found ${filteredPosts.length} posts matching your criteria`
-                  : `Discover ${filteredPosts.length} amazing stories and insights`
-                }
-              </p>
-            </div>
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-200"
-              >
-                Clear search
-              </button>
-            )}
-          </div>
-        </div>
+        {/* Results Count */}
+        {/* <div className="mb-6 text-center">
+          <p className="text-gray-600 text-lg">
+            Showing <span className="font-bold text-blue-600">{filteredSellers.length}</span> of <span className="font-bold text-gray-800">{sellers.length}</span> sellers
+            <span className="text-green-600 font-semibold"> (Available → Pending → Sold)</span>
+          </p>
+        </div> */}
 
-        {filteredPosts.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md mx-auto shadow-lg">
-              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 20c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z" />
+        {/* Sellers Grid */}
+        {filteredSellers.length === 0 ? (
+          <div >
+            {/* <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {searchTerm ? "No posts found" : "No posts yet"}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {searchTerm 
-                  ? "Try adjusting your search terms or filters"
-                  : "Be the first to share your story!"
-                }
-              </p>
-              {searchTerm && (
-                <button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setActiveCategory("all");
-                  }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors duration-200"
-                >
-                  Clear all filters
-                </button>
-              )}
-            </div>
+            </div> */}
+            {/* <h3 className="text-2xl font-bold text-gray-900 mb-4">No Sellers Found</h3> */}
+            <p className="text-gray-600 text-lg mb-6">
+              {searchTerm || statusFilter !== "all" 
+                ? ""
+                : ""}
+            </p>
+            {/* {(searchTerm || statusFilter !== "all") && (
+              <button 
+                onClick={clearFilters}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 mr-4"
+              >
+                Clear Filters
+              </button>
+            )} */}
+            {/* <button 
+              onClick={fetchSellers}
+              className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              Refresh Page
+            </button> */}
           </div>
         ) : (
-          <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredPosts.map((p) => (
-              <Link
-                to={`/post/${p._id}`}
-                key={p._id}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden
-                           hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer
-                           border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600
-                           group"
-              >
-                {/* Post Image */}
-                {p.image && (
-                  <div className="h-48 sm:h-56 w-full overflow-hidden relative">
-                    <img
-                      src={p.image}
-                      alt={p.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute top-3 right-3 flex space-x-1">
-                      {p.pdf && (
-                        <span className="bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-medium shadow-lg">
-                          PDF
-                        </span>
-                      )}
-                      {p.audio && (
-                        <span className="bg-purple-500 text-white px-2 py-1 rounded-lg text-xs font-medium shadow-lg">
-                          Audio
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Post Content */}
-                <div className="p-4 sm:p-6 flex flex-col flex-1">
-                  {/* Title and Author */}
-                  <div className="mb-3">
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
-                      {p.title}
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <span>By {p.uploadedBy?.username || p.author || "Unknown"}</span>
-                      <span className="mx-2">•</span>
-                      <span>{new Date(p.createdAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
+          
+         
+        
+       <>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        {filteredSellers.map((seller) => (
+          <div
+            key={seller._id}
+            onClick={() => handleClick(seller._id)}
+            className="cursor-pointer group block transform hover:-translate-y-2 transition-all duration-300"
+          >
+            <div
+              className={`rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 h-full flex flex-col text-white ${
+                seller.status === "Available"
+                  ? "bg-blue-600 hover:bg-blue-800"
+                  : seller.status === "Pending"
+                  ? "bg-blue-600 hover:bg-blue-800"
+                  : seller.status === "Sold"
+                  ? "bg-blue-600 hover:bg-blue-800"
+                  : "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+              }`}
+            >
+              {/* Seller Header */}
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex-1">
+                  <h3 className="inline-flex items-center  bg-red-600 px-3 py-1 rounded-full text-sm font-semibold bg-opacity-20 text-white border border-white border-opacity-30">
+                    {seller.fullnames || seller.name || "SAAMI BECO"}
+                  </h3>
+                </div>
+                <div className="flex-shrink-0 ml-4">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-opacity-20 text-white border border-white border-opacity-30 ${
+                      seller.status === "Available"
+                        ? "bg-green-500"
+                        : seller.status === "Pending"
+                        ? "bg-yellow-500"
+                        : seller.status === "Sold"
+                        ? "bg-red-500"
+                        : "bg-gray-500"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-white mr-2"></span>
+                    {seller.status}
+                  </span>
+                </div>
+              </div>
 
-                  {/* Content Preview */}
-                  <div className="flex-1 mb-4">
-                    <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base line-clamp-3 leading-relaxed">
-                      {p.content}
+              {/* Seller Details */}
+              <div className="space-y-4 mb-6 flex-1">
+                <div className="bg-opacity-20 rounded-xl p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-white font-semibold">RATE</p>
+                    <p className="text-xl font-bold text-white">
+                      {seller.rate || "N/A"}
                     </p>
                   </div>
+                </div>
 
-                  {/* Media Indicators and Read More */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center space-x-3">
-                      {/* PDF Indicator */}
-                      {p.pdf && (
-                        <div className="flex items-center text-gray-400 group/tooltip relative" title="Contains PDF">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </div>
-                      )}
-                      
-                      {/* Audio Indicator */}
-                      {p.audio && (
-                        <div className="flex items-center text-gray-400 group/tooltip relative" title="Contains Audio">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a9 9 0 010 12m-4.5-9.5L12 3v18l-4.5-4.5H4a1 1 0 01-1-1v-7a1 1 0 011-1h3.5z" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Read More CTA */}
-                    <div className="text-indigo-600 dark:text-indigo-400 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform duration-200">
-                      Read more
-                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
+                <div className="bg-opacity-20 rounded-xl p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-white font-semibold">LACAGTA QORMEYSA</p>
+                    <p className="text-xl font-bold text-white">
+                      {seller.samiga?.toLocaleString() || "N/A"}
+                    </p>
                   </div>
                 </div>
-              </Link>
-            ))}
+
+                <div className="bg-opacity-20 rounded-xl p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-white font-semibold">WADARTA GUUD</p>
+                    <p className="text-xl font-bold text-white">
+                      ${seller.value?.toLocaleString() || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-white border-opacity-30 pt-4 mt-auto">
+                <div className="flex items-center justify-between">
+                  <span className="text-white font-semibold text-sm group-hover:opacity-90 transition-colors duration-200 flex items-center gap-2">
+                    Dalbo Hada
+                    <svg
+                      className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-200"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </span>
+                  <div className="w-2 h-2 bg-white rounded-full group-hover:opacity-70 transition-colors duration-200"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ⚠️ Modal (only if user not logged in) */}
+      {!user && showConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 animate-fade-in-up">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+              <svg
+                className="h-8 w-8 text-red-600 dark:text-red-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"
+                />
+              </svg>
+            </div>
+
+            <h3 className="text-2xl font-bold text-red-500 dark:text-white mb-2 text-center">
+              Fadlan is diwangeli
+            </h3>
+
+            <p className="font-semibold text-gray-600 dark:text-gray-300 mb-6 text-center">
+              Si aad u dalbato saamigan, waa inaad marka hore isdiiwaangelisaa
+              ama soo gashaa.
+            </p>
+
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => navigate("/login")}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition-all"
+              >
+                Hada Is Diiwangeli
+              </button>
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-xl transition-all"
+              >
+                Ka Noqo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+        )}
+        <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ ...buttonStyle, ...(isHovered ? hoverStyle : {}) }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      aria-label="Chat on WhatsApp"
+    >
+      <FaWhatsapp />
+    </a>
+
+        {/* Stats Footer */}
+        {sellers.length > 0 && (
+          <div className="mt-12 bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
+              {/* Total Sellers */}
+              <div>
+                <p className="text-2xl font-bold text-blue-600">{sellers.length}</p>
+                <p className="text-gray-600 text-sm">Total Sellers</p>
+              </div>
+              
+              {/* Pending Sellers */}
+              <div>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {sellers.filter(s => s.status === 'Pending').length}
+                </p>
+                <p className="text-gray-600 text-sm">Pending</p>
+              </div>
+              
+              {/* Available Sellers */}
+              <div>
+                <p className="text-2xl font-bold text-green-600">
+                  {sellers.filter(s => s.status === 'Available').length}
+                </p>
+                <p className="text-gray-600 text-sm">Available</p>
+              </div>
+              
+              {/* Sold Sellers */}
+              <div>
+                <p className="text-2xl font-bold text-red-600">
+                  {sellers.filter(s => s.status === 'Sold').length}
+                </p>
+                <p className="text-gray-600 text-sm">Sold</p>
+              </div>
+              
+              {/* Total Value - Lacagta */}
+              <div>
+                <p className="text-2xl font-bold text-purple-600">
+                  ${sellers
+                    .filter(s => s.status === 'Available')
+                    .reduce((total, seller) => total + (parseFloat(seller.value) || 0), 0)
+                    .toLocaleString()
+                  }
+                </p>
+                <p className="text-gray-600 text-sm">Available Value</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -410,4 +493,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default BuyerManagement;

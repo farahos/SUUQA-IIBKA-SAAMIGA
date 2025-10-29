@@ -13,13 +13,15 @@ import Login from './pages/Login.jsx';
 
 import Register from './pages/Register.jsx';
 import Home from './components/Home.jsx';
-import Booked from './components/Booked.jsx';
-import EditPost from './components/EditPost.jsx';
+import EditPost from './components/SellerDetail.jsx';
 import AdminDashboard from './admin/AdminDashboard.jsx';
-import AddBook from './admin/AddBook.jsx';
-import ViewBook from './admin/ViewBook.jsx';
-import Books from './components/Books.jsx';
-import PostDetail from './components/PostDetail.jsx';
+
+import ViewBook from './admin/RequestBuyer.jsx';
+
+import SellerDetail from './admin/SellerDetail.jsx';
+import BuyerManagement from './admin/manageRequst.jsx'
+import SellerManagement from './admin/sellerManagement.jsx';
+import Buyer from './components/buyer.jsx';
 
 
 
@@ -28,28 +30,31 @@ const router = createBrowserRouter([
   {
     path: "/", element: <App/>,
     children:[
-      
+         { path: '/', 
+          element: <Home /> },
         { path: '/login', 
           element: <Login/> },
             { path: '/Register', 
           element: <Register/> },
 
-        { path: '/Home', 
-          element: <Home /> },
-         { path: '/edit/:id', 
+  
+         { path: '/seller/:sellerId', 
           element: <EditPost /> },
-          { path: '/Booked', 
-          element: <Booked /> },
-          { path: '/Books', 
-          element: <Books /> },
+         
            { path: '/admin-dashboard', 
           element: <AdminDashboard /> },
-           { path: '/addbook', 
-          element: <AddBook /> },
-           { path: '/viewbook', 
+           { path: '/SellerManagement', 
+          element: <SellerManagement /> },
+           { path: '/RequestBuyer', 
           element: <ViewBook /> },
-           { path: '/post/:id', 
-          element: <PostDetail /> },
+     
+      {  path:"/seller/:sellerId" },
+       { element:<SellerDetail />},
+       {  path:"/manage",
+        element:<BuyerManagement />},
+        {path:"/buyer",
+        element:<Buyer /> }
+       
 
         
 

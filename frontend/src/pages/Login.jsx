@@ -6,7 +6,7 @@ import { useUser } from "../hooks/useUser";
 
 const Login = () => {
     const [form, setForm] = useState({
-        email: "",
+        phone: "",
         password: ""
     });
     const { login, user } = useUser();
@@ -16,7 +16,8 @@ const Login = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user) navigate("/");
+        if (user?.role === "admin") navigate("/admin-dashboard");
+        else if (user?.role === "user") navigate("/");
     }, [user]);
 
     // Check for remembered email
@@ -46,7 +47,7 @@ const Login = () => {
             
             // Remember email if checkbox is checked
             if (rememberMe) {
-                localStorage.setItem("rememberedEmail", form.email);
+                localStorage.setItem("rememberedEmail", form.phone);
             } else {
                 localStorage.removeItem("rememberedEmail");
             }
@@ -92,10 +93,10 @@ const Login = () => {
                             </div>
                         </div>
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
-                            Welcome Back
+                           Gal hadda
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400 mt-2">
-                            Sign in to your account to continue
+                            Ku soo gal akoonkaaga si aad u sii waddo
                         </p>
                     </div>
 
@@ -103,7 +104,7 @@ const Login = () => {
                         {/* Email Field */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Email Address
+                               Tel
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -112,12 +113,12 @@ const Login = () => {
                                     </svg>
                                 </div>
                                 <input
-                                    type="email"
-                                    id="email"
-                                    value={form.email}
+                                    type="phone"
+                                    id="phone"
+                                    value={form.phone}
                                     onChange={handleChange}
                                     className="block w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                    placeholder="Enter your email"
+                                    placeholder="Gali telefoonkaaga"
                                     required
                                 />
                             </div>
@@ -140,7 +141,7 @@ const Login = () => {
                                     value={form.password}
                                     onChange={handleChange}
                                     className="block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                    placeholder="Enter your password"
+                                    placeholder="Gali password kaaga"
                                     required
                                 />
                                 <button
@@ -164,7 +165,7 @@ const Login = () => {
 
                         {/* Remember Me & Forgot Password */}
                         <div className="flex items-center justify-between">
-                            <label className="flex items-center">
+                            {/* <label className="flex items-center">
                                 <input
                                     type="checkbox"
                                     checked={rememberMe}
@@ -172,7 +173,7 @@ const Login = () => {
                                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                                 />
                                 <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
-                            </label>
+                            </label> */}
                             <Link
                                 to="/forgot-password"
                                 className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
@@ -193,10 +194,10 @@ const Login = () => {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Signing in...
+                                    wax yar sug...
                                 </div>
                             ) : (
-                                "Sign In"
+                                "Gal Hadda"
                             )}
                         </button>
                     </form>
@@ -208,7 +209,7 @@ const Login = () => {
                                 <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white/80 dark:bg-gray-800/80 text-gray-500">New to our platform?</span>
+                                <span className="inline-flex items-center text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200">Haddii aadan hore isku diiwaan gelin</span>
                             </div>
                         </div>
 
@@ -218,7 +219,7 @@ const Login = () => {
                                 to="/Register"
                                 className="inline-flex items-center text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200"
                             >
-                                Create an account
+                                Hada is diiwaangeli
                                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>

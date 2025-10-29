@@ -33,3 +33,11 @@ export const authorizeRoles = (...allowedRoles) => {
     next();
   };
 };
+
+// // i need check user is active or not
+// export const checkActiveStatus = (req, res, next) => {
+//   if (!req.user || req.user.isActive === false) {
+//     return res.status(403).json({ message: "Account is inactive. Contact admin." });
+//   }
+//   next();
+// }

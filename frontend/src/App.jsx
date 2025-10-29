@@ -19,7 +19,7 @@ export default function App() {
   }
 
   // Haddii uu yahay admin -> Sidebar layout
-  if (user.role === "admin") {
+  if (user?.role === "admin") {
     return (
       <div className="flex">
         <Sidebar />
@@ -31,7 +31,7 @@ export default function App() {
   }
 
   // Haddii uu yahay user caadi ah -> Header layout
-  if (user.role === "user") {
+  if (user?.role === "user") {
     return (
       <>
         <Header />

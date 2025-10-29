@@ -8,6 +8,7 @@ const Register = () => {
     const [form, setForm] = useState({
         username: "",
         email: "",
+        phone: "",
         password: "",
         confirmPassword: ""
     });
@@ -17,6 +18,7 @@ const Register = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
+    const [showVerificationPopup, setShowVerificationPopup] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -30,10 +32,6 @@ const Register = () => {
         // Username validation
         if (!form.username.trim()) {
             newErrors.username = "Username is required";
-        } else if (form.username.length < 3) {
-            newErrors.username = "Username must be at least 3 characters";
-        } else if (!/^[a-zA-Z0-9_]+$/.test(form.username)) {
-            newErrors.username = "Username can only contain letters, numbers, and underscores";
         }
 
         // Email validation
@@ -43,13 +41,16 @@ const Register = () => {
             newErrors.email = "Please enter a valid email address";
         }
 
+        // Phone validation
+        if (!form.phone.trim()) {
+            newErrors.phone = "Phone number is required";
+        } else if (!/^\+?[\d\s-()]+$/.test(form.phone)) {
+            newErrors.phone = "Please enter a valid phone number";
+        }
+
         // Password validation
         if (!form.password) {
             newErrors.password = "Password is required";
-        } else if (form.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters";
-        } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(form.password)) {
-            newErrors.password = "Password must contain uppercase, lowercase, and numbers";
         }
 
         // Confirm password validation
@@ -98,6 +99,7 @@ const Register = () => {
         setTouched({
             username: true,
             email: true,
+            phone: true,
             password: true,
             confirmPassword: true
         });
@@ -108,16 +110,18 @@ const Register = () => {
         if (Object.keys(formErrors).length === 0) {
             setLoading(true);
             try {
-                const { data } = await axios.post('/api/user/register', {
+                const { data } = await axios.post("/api/user/registerUser", {
                     username: form.username,
                     email: form.email,
+                    phone: form.phone,
                     password: form.password
                 });
                 
-                toast.success("Registration successful! Welcome aboard! 🎉");
                 setLoading(false);
-                login(data, data.expirein);
-                navigate("/");
+                // Show verification popup instead of logging in immediately
+                setShowVerificationPopup(true);
+                
+                // Don't login or navigate yet - account needs verification
             } catch (error) {
                 setLoading(false);
                 const errorMessage = error.response?.data?.message || 
@@ -153,6 +157,12 @@ const Register = () => {
         return `${baseClass} ${defaultClass}`;
     };
 
+    const handlePopupClose = () => {
+        setShowVerificationPopup(false);
+        // Redirect to login page after showing the popup
+        navigate("/login");
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 p-4">
             {/* Background Decorations */}
@@ -175,10 +185,10 @@ const Register = () => {
                             </div>
                         </div>
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent dark:from-green-400 dark:to-blue-400">
-                            Create Account
+                           Hadda is diiwaangeli
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400 mt-2">
-                            Join our community today
+                            Ku biir suuqa iibka saamiga ee ugu weyn
                         </p>
                     </div>
 
@@ -186,7 +196,7 @@ const Register = () => {
                         {/* Username Field */}
                         <div>
                             <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Username
+                                Magaca
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -201,7 +211,7 @@ const Register = () => {
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     className={getInputClassName("username")}
-                                    placeholder="Choose a username"
+                                    placeholder="Gali magacaaga oo buuxa"
                                     required
                                 />
                                 {form.username && !errors.username && touched.username && (
@@ -220,7 +230,7 @@ const Register = () => {
                         {/* Email Field */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Email Address
+                                Email kaaga
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -235,7 +245,7 @@ const Register = () => {
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     className={getInputClassName("email")}
-                                    placeholder="Enter your email"
+                                    placeholder="Gali email kaaga "
                                     required
                                 />
                                 {form.email && !errors.email && touched.email && (
@@ -248,6 +258,40 @@ const Register = () => {
                             </div>
                             {errors.email && touched.email && (
                                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                            )}
+                        </div>
+
+                        {/* Phone Field */}
+                        <div>
+                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                 Tel
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    value={form.phone}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    className={getInputClassName("phone")}
+                                    placeholder="Gali lambarka taleefankaaga"
+                                    required
+                                />
+                                {form.phone && !errors.phone && touched.phone && (
+                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                )}
+                            </div>
+                            {errors.phone && touched.phone && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone}</p>
                             )}
                         </div>
 
@@ -269,7 +313,7 @@ const Register = () => {
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     className={getInputClassName("password")}
-                                    placeholder="Create a password"
+                                    placeholder="gali password kaaga"
                                     required
                                 />
                                 <button
@@ -302,7 +346,7 @@ const Register = () => {
                         {/* Confirm Password Field */}
                         <div>
                             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Confirm Password
+                                Hubi password kaaga
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -317,7 +361,7 @@ const Register = () => {
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     className={getInputClassName("confirmPassword")}
-                                    placeholder="Confirm your password"
+                                    placeholder="Gali mar kale password kaaga"
                                     required
                                 />
                                 <button
@@ -342,7 +386,7 @@ const Register = () => {
                             )}
                             {form.confirmPassword && form.password === form.confirmPassword && !errors.confirmPassword && (
                                 <p className="mt-1 text-sm text-green-600 dark:text-green-400">
-                                    ✓ Passwords match
+                                    ✓ Password waa inuu isku mid ahaadaa
                                 </p>
                             )}
                         </div>
@@ -375,10 +419,10 @@ const Register = () => {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Creating Account...
+                                    Waxaa socda Diwaan galinta...
                                 </div>
                             ) : (
-                                "Create Account"
+                                "Is diiwaan geli"
                             )}
                         </button>
                     </form>
@@ -390,7 +434,7 @@ const Register = () => {
                                 <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white/80 dark:bg-gray-800/80 text-gray-500">Already have an account?</span>
+                                <span className="px-2 bg-white/80 dark:bg-gray-800/80 text-gray-500">Haddii aad hore isku diiwaan galisay</span>
                             </div>
                         </div>
 
@@ -400,7 +444,7 @@ const Register = () => {
                                 to="/login"
                                 className="inline-flex items-center text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200"
                             >
-                                Sign in to your account
+                                Gal hadda
                                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
@@ -419,6 +463,42 @@ const Register = () => {
                     </p>
                 </div>
             </div>
+
+            {/* Verification Popup */}
+            {showVerificationPopup && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 animate-fade-in-up">
+                        <div className="text-center">
+                            {/* Icon */}
+                            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 dark:bg-yellow-900 mb-4">
+                                <svg className="h-8 w-8 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            
+                            {/* Title */}
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                Account Under Verification
+                            </h3>
+                            
+                            {/* Message */}
+                            <p className="text-gray-600 dark:text-gray-300 mb-6">
+                                Your account has been created successfully but needs to be verified by our team. 
+                                Your account will be activated within <span className="font-semibold">24 hours</span>.
+                                You'll receive a notification once it's approved.
+                            </p>
+                            
+                            {/* Button */}
+                            <button
+                                onClick={handlePopupClose}
+                                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                            >
+                                Continue to Login
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Custom CSS for animations */}
             <style jsx>{`
