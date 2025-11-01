@@ -247,7 +247,7 @@ const SellerDetail = () => {
         </div>
 
         {/* Buyer Requests Section */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+        <div className="bg-white rounded-2xl shadow-xl p-2 border border-gray-200">
           {/* Buyers List */}
           {buyers.length === 0 ? (
             <div className="text-end">
