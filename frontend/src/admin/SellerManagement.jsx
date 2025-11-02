@@ -133,12 +133,12 @@ const SellerManagement = () => {
   return (
     <div className="seller-management">
       <div className="header">
-        <h1>seller Management</h1>
+        <h1>Saami Management</h1>
         <button 
           className="btn-primary"
           onClick={() => setShowForm(true)}
         >
-          Add New seller
+          Add New Saami
         </button>
       </div>
 
@@ -147,13 +147,13 @@ const SellerManagement = () => {
         <div className="popup-overlay">
           <div className="popup-form">
             <div className="popup-header">
-              <h2>{editingseller ? 'Edit seller' : 'Add New seller'}</h2>
+              <h2>{editingseller ? 'Edit Saami' : 'Add New Saami'}</h2>
               <button className="close-btn" onClick={resetForm}>×</button>
             </div>
             
             <form onSubmit={editingseller ? handleUpdateseller : handleAddseller}>
               <div className="form-group">
-                <label>Full Name:</label>
+                <label>Campany Name:</label>
                 <input
                   type="text"
                   name="fullname"
@@ -176,7 +176,7 @@ const SellerManagement = () => {
               </div>
 
               <div className="form-group">
-                <label>Samiga:</label>
+                <label>LACAGTA QORMEYSA:</label>
                 <input
                   type="number"
                   name="samiga"
@@ -187,7 +187,7 @@ const SellerManagement = () => {
               </div>
 
               <div className="form-group">
-                <label>Value (Auto-calculated):</label>
+                <label>WADARTA GUUD</label>
                 <input
                   type="number"
                   name="value"
@@ -197,7 +197,7 @@ const SellerManagement = () => {
                   placeholder="Auto-calculated"
                 />
                 <small className="calculation-info">
-                  Value = Rate × Samiga
+                  Wadarta guud = Rate × LACAGTA QORMEYSA
                 </small>
               </div>
 
@@ -229,18 +229,18 @@ const SellerManagement = () => {
 
       {/* sellers List */}
       <div className="sellers-list">
-        <h2>sellers List ({sellers.length})</h2>
+        <h2>Saami List ({sellers.length})</h2>
         
         {sellers.length === 0 ? (
-          <p>No sellers found.</p>
+          <p>No Saami found.</p>
         ) : (
           <div className="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>Full Name</th>
+                  <th>Campany Name</th>
                   <th>Rate</th>
-                  <th>Samiga</th>
+                  <th>Share</th>
                   <th>Value</th>
                   <th>Status</th>
                   <th>Actions</th>

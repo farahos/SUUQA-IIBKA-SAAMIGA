@@ -35,17 +35,17 @@ const Sidebar = () => {
 
         <Link to="/manage" className={linkClasses("/manage")}>
           <Users size={20} />
-          <span>Manage Request</span>
+          <span>Request Buyer </span>
         </Link>
 
         <Link to="/SellerManagement" className={linkClasses("/SellerManagement")}>
           <BookOpen size={20} />
-          <span>Seller Manage</span>
+          <span>Share Manage</span>
         </Link>
 
         <Link to="/RequestBuyer" className={linkClasses("/RequestBuyer")}>
           <BarChart2 size={20} />
-          <span>manage Users</span>
+          <span>Manage Users</span>
         </Link>
       </nav>
 

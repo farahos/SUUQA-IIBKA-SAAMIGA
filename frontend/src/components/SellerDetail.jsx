@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useUser } from '../hooks/useUser'; // Adjust path as needed
+import Footer from './Footer';
 
 const SellerDetail = () => {
   const { sellerId } = useParams();
@@ -183,9 +184,10 @@ const SellerDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
+     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    {/* Main Content */}
+    <main className="flex-grow py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           {/* <h1 className="text-2xl font-semibold text-blue-600">
             Waxaan Diyaar u ahay inaan iibsado saamigan:
@@ -258,7 +260,7 @@ const SellerDetail = () => {
               ) : (
                 <button
                   onClick={() => setShowConfirm(true)}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="bg-blue-600 hover:bg-blue-800 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   Dalbo Hada
                 </button>
@@ -356,7 +358,7 @@ const SellerDetail = () => {
             </h3>
             
             {/* Message */}
-            <p className="font-semibold text-gray-700 dark:text-gray-300 mb-6 text-center text-lg">
+            <p className="font-semibold text-black mb-6 text-center text-lg">
               ✅ Codsigaaga waa la gudbiyey! Tag Nootaayo Boqole.
             </p>
             
@@ -368,8 +370,15 @@ const SellerDetail = () => {
           </div>
         </div>
       )}
+        
+      </main>
+      
+  <Footer className="mt-auto" /> 
+     
+     
     </div>
   );
+
 };
 
 export default SellerDetail;

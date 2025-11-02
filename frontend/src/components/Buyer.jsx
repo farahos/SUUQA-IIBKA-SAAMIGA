@@ -145,11 +145,25 @@ const handleClick = (sellerId) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Saamiga iibka diyaarka ah
-          </h1>
-        </div>
+      <div className="mb-8 text-center">
+  <motion.h1
+    className="text-4xl font-extrabold text-blue-600 mb-4"
+    initial={{ opacity: 0, y: 30 }}     // marka hore: hoos iyo aan muuqan
+    animate={{ opacity: 1, y: 0 }}      // kadib: kor u kac iyo muuqaal buuxa
+    transition={{ duration: 1, ease: "easeOut" }}  // xawaaraha animation-ka
+  >
+    Suuqa Iibka Saamiga
+  </motion.h1>
+
+  <motion.p
+    className="text-blue-600 text-lg font-semibold"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ delay: 0.5, duration: 1 }}
+  >
+    Ka hel fursadaha ugu fiican ee iibka saamiyada halkan.
+  </motion.p>
+</div>
 
         {/* Search and Filter Section */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200">
@@ -241,7 +255,7 @@ const handleClick = (sellerId) => {
           </div>
       <div className="flex items-center justify-between px-6 py-3">
         <h2 className="text-gray-600 font-medium">
-          Trusted by companies & exchanges
+          {/* Trusted by companies & exchanges */}
         </h2>
         <div className="flex items-center gap-2">
           <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
@@ -503,7 +517,7 @@ const handleClick = (sellerId) => {
 
         {/* Stats Footer */}
         {sellers.length > 0 && (
-          <div className="mt-12 bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+          <div className="mt-12 bg-white rounded-2xl shadow-lg p-2 border border-gray-200">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
               {/* Total Sellers */}
               <div>

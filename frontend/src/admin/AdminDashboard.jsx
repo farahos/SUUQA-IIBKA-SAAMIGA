@@ -92,7 +92,7 @@ const GetAllsellers = () => {
                 <p className="text-2xl font-bold text-gray-900">{users.length}</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-600 mb-2">All Sellers</p>
+                <p className="text-sm text-gray-600 mb-2">All Shares</p>
                 <p className="text-2xl font-bold text-gray-900">{sellers.length}</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
@@ -100,7 +100,7 @@ const GetAllsellers = () => {
                 <p className="text-2xl font-bold text-gray-900">{buyers.length}</p>
               </div>
               <div className="bg-blue-50 rounded-lg p-4">
-                <p className="text-sm text-blue-600 mb-2">All share</p>
+                <p className="text-sm text-blue-600 mb-2"> shares</p>
                 <p className="text-2xl font-bold text-blue-700">
                   {sellers.reduce((sum, seller) => sum + seller.samiga, 0).toLocaleString()}
                 </p>
@@ -120,7 +120,7 @@ const GetAllsellers = () => {
           {sellers.length === 0 ? (
             <div className="py-12 text-center text-gray-500">
               <div className="text-5xl mb-4">📝</div>
-              <p>Macamiil ma lihid</p>
+              <p>emty</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -128,10 +128,10 @@ const GetAllsellers = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">
-                      Name
+                   Campany Name
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">
-                      Market Value
+                     Rate
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">
                       Share
@@ -156,7 +156,7 @@ const GetAllsellers = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-mono text-gray-500 text-sm">
+                        <div className="font-semibold text-gray-900 ">
                           {seller.rate}
                         </div>
                       </td>

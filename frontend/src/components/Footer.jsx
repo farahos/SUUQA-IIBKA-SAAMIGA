@@ -52,8 +52,8 @@ export default function Footer({
   const year = new Date().getFullYear();
 
   return (
-    <footer className="w-full border-t border-gray-200 bg-blue-600 text-white">
-      <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+    <footer className="w-full border-t border-gray-200 bg-blue-600 shadow-lg text-white ">
+      <div className="max-w-6xl mx-auto px-4 py-2 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
           <div className="text-sm font-semibold text-white">{companyName}</div>
           <nav className="flex items-center space-x-3 text-sm">
